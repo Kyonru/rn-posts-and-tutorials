@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {Image, SafeAreaView, StatusBar, ScrollView} from 'react-native';
-import ViewShot from 'react-native-view-shot';
+import ViewShot, {captureRef} from 'react-native-view-shot';
+import Share from 'react-native-share';
 import {
   Avatar,
   Button,
@@ -23,10 +24,28 @@ class Main extends Component {
 
   takeSnapshot = async () => {
     if (this.card.current) {
-      const snapshot = await this.card.current.capture!();
+      // const snapshot = await this.card.current.capture!();
+      const snapshot = await captureRef(this.card, {
+        result: 'data-uri',
+      });
       this.setState({
         snapshot,
       });
+    }
+  };
+
+  shareSnapshot = () => {
+    const {snapshot} = this.state;
+    if (snapshot) {
+      Share.open({
+        url: snapshot,
+      })
+        .then((res: any) => {
+          console.log(res);
+        })
+        .catch((err: any) => {
+          err && console.log(err);
+        });
     }
   };
 
@@ -68,6 +87,13 @@ class Main extends Component {
               onChangeText={subtitle => this.setState({subtitle})}
             />
             <Text style={styles.title}> Snapshot</Text>
+            <Button
+              disabled={!this.state.snapshot}
+              icon="share"
+              mode="contained"
+              onPress={this.shareSnapshot}>
+              Share
+            </Button>
             {snapshot && (
               <Image
                 source={{uri: snapshot}}
